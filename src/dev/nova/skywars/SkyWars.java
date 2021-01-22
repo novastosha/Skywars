@@ -46,34 +46,11 @@ public class SkyWars extends JavaPlugin implements Listener {
 
 
         File config = new File("./plugins/Skywars/","config.yml");
-        FileWriter writer = null;
 
         if(!config.exists()) {
             try {
                 config.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try{
-                writer = new FileWriter(config);
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-            try {
-                writer.write("##########################################################################");
-                writer.write("                      GENERAL SKYWARS CONFIG");
-                writer.write("##########################################################################");
-                writer.flush();
-                writer.close();
-            } catch (IOException ignored) {
-
-            }
-        }
-
-        if(config.exists()){
-            try{
-                writer = new FileWriter(config);
-            }catch (IOException e){
                 e.printStackTrace();
             }
         }
