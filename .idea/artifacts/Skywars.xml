@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Skywars">
+    <output-path>$PROJECT_DIR$/../Minecraft Server for java/plugins</output-path>
+    <root id="archive" name="Skywars.jar">
+      <element id="module-output" name="SkyWars" />
+    </root>
+  </artifact>
+</component>

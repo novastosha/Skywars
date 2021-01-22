@@ -1,0 +1,12 @@
+name: Skywars
+version: 1.0
+author: yazid
+main: dev.nova.skywars.SkyWars
+description: yazid
+commands:
+  leave:
+    description: yazid
+  join:
+    description: lol
+  arena-list:
+    description: lol

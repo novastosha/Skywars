@@ -1,0 +1,8 @@
+name: KitPVP
+version: 1.0
+author: yazid
+main: dev.nova.kitpvp.KitPVP
+description: yazid
+commands:
+  cmd:
+    description: yazid
