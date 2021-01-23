@@ -1,6 +1,7 @@
 package dev.nova.skywars.player;
 
 import dev.nova.skywars.arena.Arena;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ public class SkyWarsPlayer {
     private final Player player;
     private Arena game;
     private boolean inGame;
+    private Entity killer;
 
     public SkyWarsPlayer(Player player){
         this.player = player;
@@ -30,10 +32,6 @@ public class SkyWarsPlayer {
         return null;
     }
 
-    public static ArrayList<SkyWarsPlayer> getKitPVPPlayerCache() {
-        return skyWarsPlayerCache;
-    }
-
     public boolean isInGame() {
         return inGame;
     }
@@ -48,5 +46,17 @@ public class SkyWarsPlayer {
 
     public Arena getGame() {
         return game;
+    }
+
+    public static ArrayList<SkyWarsPlayer> getSkyWarsPlayerCache() {
+        return skyWarsPlayerCache;
+    }
+
+    public void setKiller(Entity entity){
+        this.killer = entity;
+    }
+
+    public Entity getKiller() {
+        return killer;
     }
 }
