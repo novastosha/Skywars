@@ -2,6 +2,7 @@ package dev.nova.skywars;
 
 import dev.nova.skywars.arena.Arena;
 import dev.nova.skywars.arena.ArenaCommand;
+import dev.nova.skywars.arena.ArenaListener;
 import dev.nova.skywars.arena.ArenaManager;
 import dev.nova.skywars.cages.CageManager;
 import dev.nova.skywars.player.SkyWarsPlayer;
@@ -26,7 +27,11 @@ import java.util.ArrayList;
 
 public class SkyWars extends JavaPlugin implements Listener {
 
-
+    /**
+     * TODO:
+     *
+     * Custom death messages :)
+     */
 
     @Override
     public void onEnable() {
@@ -40,13 +45,10 @@ public class SkyWars extends JavaPlugin implements Listener {
         li.setItemMeta(meta);
         Arena.LEAVE_ITEM = li;
 
-
         File plugin = new File("./plugins/Skywars/");
         if(!plugin.exists()) plugin.mkdir();
 
-
         File config = new File("./plugins/Skywars/","config.yml");
-
         if(!config.exists()) {
             try {
                 config.createNewFile();
@@ -58,21 +60,23 @@ public class SkyWars extends JavaPlugin implements Listener {
         File arenas = new File("./plugins/Skywars/arenas");
         if(!arenas.exists()) arenas.mkdir();
 
-
         File cages = new File("./plugins/Skywars/cages");
         if(!cages.exists()) cages.mkdir();
+
+        Bukkit.getPluginManager().registerEvents(this,this);
+        Bukkit.getPluginManager().registerEvents(new ArenaListGUI(),this);
+        Bukkit.getPluginManager().registerEvents(new ArenaListener(),this);
+
+        getCommand("join").setExecutor(new ArenaCommand());
+        getCommand("arena-list").setExecutor(new ArenaCommand());
 
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] "+ ChatColor.GREEN+"Loading arenas...");
         ArenaManager.loadArenas(new File("./plugins/Skywars/arenas"));
 
-        Bukkit.getPluginManager().registerEvents(this,this);
-
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] "+ ChatColor.GREEN+"Loading cages...");
         CageManager.loadCages(new File("./plugins/Skywars/cages"));
 
-        getCommand("join").setExecutor(new ArenaCommand());
-        getCommand("arena-list").setExecutor(new ArenaCommand());
-        Bukkit.getPluginManager().registerEvents(new ArenaListGUI(),this);
+
 
         Arena test = new Arena(ArenaManager.getFinalArena("test").cloneArena(),false);
 
@@ -110,6 +114,5 @@ public class SkyWars extends JavaPlugin implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event){
         SkyWarsPlayer skyWarsPlayer = new SkyWarsPlayer(event.getPlayer());
-
     }
 }
