@@ -1,9 +1,7 @@
 package dev.nova.skywars.arena;
 
 import dev.nova.skywars.player.SkyWarsPlayer;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -13,6 +11,7 @@ public class Arena extends Thread {
 
     public static ItemStack LEAVE_ITEM;
     private final FinalArena fromClone;
+    private World world;
     private String codeName;
     private String displayName;
     private ArrayList<SkyWarsPlayer> players;
@@ -29,8 +28,7 @@ public class Arena extends Thread {
     public Arena(FinalArena fromClone, boolean privateGame) {
         this.fromClone = fromClone;
         maxPlayers = fromClone.getMaxPlayers();
-        minPlayers = 1;
-        minPlayers = 1;
+        minPlayers = Math.round(((float) maxPlayers/2));
         codeName = fromClone.getCodeName();
         displayName = fromClone.getFancyName();
         state = ArenaState.WAITING;
@@ -38,10 +36,14 @@ public class Arena extends Thread {
         players = new ArrayList<>();
         spectators = new ArrayList<>();
         this.privateGame = privateGame;
+        world = ArenaManager.copyWorld(fromClone.getWorld(), fromClone.getCodeName()+"_"+ID);
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.GOLD + "An arena has been created from: " + codeName + " with id: " + ID);
         ArenaManager.arenas.add(this);
     }
 
+    public World getWorld() {
+        return world;
+    }
 
     public int getMaxPlayers() {
         return maxPlayers;
@@ -196,6 +198,7 @@ public class Arena extends Thread {
         player.getPlayer().getInventory().setItem(8, LEAVE_ITEM);
         player.setInGame(true);
         player.setGame(this);
+        //player.getPlayer().teleport(world.getSpawnLocation());
         sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + ChatColor.LIGHT_PURPLE+player.getPlayer().getName()+ChatColor.GRAY+" has joined the game!");
     }
 
