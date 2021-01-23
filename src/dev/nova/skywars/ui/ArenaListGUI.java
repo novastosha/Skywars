@@ -57,7 +57,6 @@ public class ArenaListGUI implements Listener{
 
         }
         if(open) player.openInventory(arenaList);
-        openInventory(player,false);
     }
     @EventHandler
     public void onClick(InventoryClickEvent event){
