@@ -79,6 +79,7 @@ public class ArenaListener implements Listener {
                         }
                         break;
                 }
+                arena.kill(player);
             }
         }
     }
