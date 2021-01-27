@@ -1,13 +1,16 @@
 package dev.nova.skywars.arena;
 
+import dev.nova.skywars.SkyWars;
 import dev.nova.skywars.player.SkyWarsPlayer;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitScheduler;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Arena extends Thread {
+public class Arena {
 
     public static ItemStack LEAVE_ITEM;
     private final FinalArena fromClone;
@@ -16,7 +19,7 @@ public class Arena extends Thread {
     private String displayName;
     private ArrayList<SkyWarsPlayer> players;
     private ArrayList<SkyWarsPlayer> spectators;
-    private HashMap<SkyWarsPlayer,Location> playerCage;
+    private HashMap<SkyWarsPlayer, Location> playerCage;
     private ArenaState state;
     private int minPlayers;
     private int timeToStart;
@@ -24,21 +27,58 @@ public class Arena extends Thread {
     private int maxPlayers;
     private int ID;
     private boolean count;
+    private boolean force;
+    private int taskID;
+    private boolean started;
 
     public Arena(FinalArena fromClone, boolean privateGame) {
         this.fromClone = fromClone;
-        maxPlayers = fromClone.getMaxPlayers();
-        minPlayers = Math.round(((float) maxPlayers/2));
-        codeName = fromClone.getCodeName();
-        displayName = fromClone.getFancyName();
-        state = ArenaState.WAITING;
-        ID = ArenaManager.arenas.size() + 1;
-        players = new ArrayList<>();
-        spectators = new ArrayList<>();
-        this.privateGame = privateGame;
-        world = ArenaManager.copyWorld(fromClone.getWorld(), fromClone.getCodeName()+"_"+ID);
-        Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.GOLD + "An arena has been created from: " + codeName + " with id: " + ID);
-        ArenaManager.arenas.add(this);
+        try {
+            maxPlayers = fromClone.getMaxPlayers();
+            minPlayers = Math.round(((float) maxPlayers / 2));
+            codeName = fromClone.getCodeName();
+            displayName = fromClone.getFancyName();
+            state = ArenaState.WAITING;
+            ID = ArenaManager.arenas.size() + 1;
+            timeToStart = 30;
+            playerCage = new HashMap<>();
+            players = new ArrayList<>();
+            spectators = new ArrayList<>();
+            this.privateGame = privateGame;
+            world = ArenaManager.copyWorld(fromClone.getWorld(), fromClone.getCodeName() + "_" + ID);
+            Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.GOLD + "An arena has been created from: " + codeName + " with id: " + ID);
+            ArenaManager.arenas.add(this);
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            taskID = scheduler.scheduleSyncRepeatingTask(SkyWars.getPlugin(SkyWars.class), new Runnable() {
+                @Override
+                public void run() {
+                    if(!started)
+                    {
+                        sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game is starting in: " + timeToStart);
+                        started = true;
+                    }
+                    if (count) {
+                        sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game is starting in: " + timeToStart);
+                        if (timeToStart <= 10) {
+                            sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game is starting in: " + timeToStart);
+                        }
+                        timeToStart--;
+                    }
+
+                    if (count) {
+                        if (timeToStart == 0) {
+                            setState(ArenaState.INGAME);
+                            sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game has begun!");
+                            count = false;
+                        }
+                    }
+                }
+            }, 0L, 20L);
+        } catch (Exception e) {
+            Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + " Unable to load the arena: " + ID + " (" + e.getMessage() + ")");
+            Bukkit.getConsoleSender().sendMessage("PLEASE REPORT THE ERROR AS SOON AS POSSIBLE");
+            e.printStackTrace();
+        }
     }
 
     public World getWorld() {
@@ -73,33 +113,6 @@ public class Arena extends Thread {
         return minPlayers;
     }
 
-    @Override
-    public void run() {
-
-            sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game is starting in: " + timeToStart);
-            while (timeToStart != 0) {
-                if (count) {
-                    if (timeToStart <= 10) {
-                        sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game is starting in: " + timeToStart);
-                    }
-
-                    timeToStart--;
-                    try {
-                        sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            if (count) {
-                if (timeToStart == 0) {
-                    setState(ArenaState.INGAME);
-                    sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game has begun!");
-                }
-            }
-
-    }
-
     public String getDisplayName() {
         return displayName;
     }
@@ -127,16 +140,17 @@ public class Arena extends Thread {
 
                 }
                 count = true;
-                run();
             }
         }
-        if (state.equals(ArenaState.FULL) || state.equals(ArenaState.STARTING)) {
-            if (players.size() < maxPlayers && players.size() < minPlayers) {
-                sendToAllPlayers(ChatColor.RED + "Waiting canceled!");
-                setState(ArenaState.WAITING);
-                setTimeToStart(1);
-                count = false;
+        if (!force) {
+            if (state.equals(ArenaState.FULL) || state.equals(ArenaState.STARTING)) {
+                if (players.size() < maxPlayers && players.size() < minPlayers) {
+                    sendToAllPlayers(ChatColor.RED + "Waiting canceled!");
+                    setState(ArenaState.WAITING);
+                    setTimeToStart(1);
+                    count = false;
 
+                }
             }
         }
         if (state.equals(ArenaState.INGAME)) {
@@ -171,11 +185,18 @@ public class Arena extends Thread {
         minPlayers = 1;
         codeName = fromClone.getCodeName();
         displayName = fromClone.getFancyName();
+        playerCage = new HashMap<>();
+        force = false;
         state = ArenaState.WAITING;
-
+        started = false;
     }
 
     private void resetMap() {
+        String worldName = world.getName();
+        Bukkit.unloadWorld(world, false);
+        File worldFolder = new File(Bukkit.getWorldContainer().getPath() + "/" + worldName);
+        worldFolder.delete();
+        //FIXME: world = ArenaManager.copyWorld(fromClone.getWorld(), fromClone.getCodeName() + "_" + ID);
     }
 
     public void sendToAllPlayersAndSpectators(String message) {
@@ -199,7 +220,8 @@ public class Arena extends Thread {
         player.setInGame(true);
         player.setGame(this);
         //player.getPlayer().teleport(world.getSpawnLocation());
-        sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + ChatColor.LIGHT_PURPLE+player.getPlayer().getName()+ChatColor.GRAY+" has joined the game!");
+        sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + ChatColor.LIGHT_PURPLE + player.getPlayer().getName() + ChatColor.GRAY + " has joined the game!");
+        //TODO HANDLE CAGE SELECTION
     }
 
 
@@ -227,10 +249,31 @@ public class Arena extends Thread {
         player.getPlayer().getInventory().clear();
         player.setInGame(false);
         player.setGame(null);
+        player.getPlayer().setGameMode(GameMode.ADVENTURE);
     }
 
     public ArrayList<SkyWarsPlayer> getSpectators() {
         return spectators;
     }
 
+    public void kill(SkyWarsPlayer player) {
+        player.getPlayer().getInventory().clear();
+        player.setInGame(false);
+        players.remove(player);
+        spectators.add(player);
+        player.getPlayer().teleport(playerCage.get(player));
+        player.getPlayer().setGameMode(GameMode.SPECTATOR);
+    }
+
+    public void setCount(boolean b) {
+        count = b;
+    }
+
+    public void setForce(boolean force) {
+        this.force = force;
+    }
+
+    public boolean isForce() {
+        return force;
+    }
 }
