@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class SkyWars extends JavaPlugin implements Listener {
-
     /**
      * TODO:
      *
@@ -39,6 +38,9 @@ public class SkyWars extends JavaPlugin implements Listener {
         ArenaManager.arenasFinalCache = new ArrayList<>();
         ArenaManager.arenas = new ArrayList<>();
         SkyWarsPlayer.skyWarsPlayerCache = new ArrayList<>();
+        for(Player player : Bukkit.getOnlinePlayers()){
+            SkyWarsPlayer skyWarsPlayer = new SkyWarsPlayer(player);
+        }
         ItemStack li = new ItemStack(Material.REDSTONE);
         ItemMeta meta = li.getItemMeta();
         meta.setDisplayName(ChatColor.RED+"Leave Game");
@@ -69,6 +71,7 @@ public class SkyWars extends JavaPlugin implements Listener {
 
         getCommand("join").setExecutor(new ArenaCommand());
         getCommand("arena-list").setExecutor(new ArenaCommand());
+        getCommand("forcestart").setExecutor(new ArenaCommand());
 
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] "+ ChatColor.GREEN+"Loading arenas...");
         ArenaManager.loadArenas(new File("./plugins/Skywars/arenas"));
@@ -90,8 +93,6 @@ public class SkyWars extends JavaPlugin implements Listener {
                 }
             }
         }.start();
-
-
     }
 
     @Override
