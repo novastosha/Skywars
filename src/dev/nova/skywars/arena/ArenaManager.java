@@ -1,9 +1,6 @@
 package dev.nova.skywars.arena;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.World;
-import org.bukkit.WorldCreator;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -128,7 +125,8 @@ public class ArenaManager {
         int maxPlayers = configurationSection.getInt("maxPlayers");
         String codeName = configurationSection.getString("codeName");
         String displayName = configurationSection.getString("displayName");
-        FinalArena arena = new FinalArena(codeName, displayName, maxPlayers, world);
+        ArrayList<Location> cages = new ArrayList<>();
+        FinalArena arena = new FinalArena(codeName, displayName, maxPlayers,cages,world,world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation());
         arenasFinalCache.add(arena);
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.GREEN + "Arena: " + displayName + " has successfully loaded!");
     }
