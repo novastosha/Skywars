@@ -44,6 +44,41 @@ public class ArenaCommand implements CommandExecutor {
             Player player = (Player) sender;
             ArenaListGUI.openInventory(player,true);
         }
+        if(command.getName().equalsIgnoreCase("forcestart")){
+            if(args.length == 0){
+                if(!(sender instanceof Player)){
+                    return true;
+                }
+                SkyWarsPlayer player = SkyWarsPlayer.getPlayer((Player) sender);
+                if(!player.isInGame()){
+                    player.getPlayer().sendMessage(ChatColor.RED+"You are not in a game!");
+                    return true;
+                }
+                Arena arena = player.getGame();
+                arena.setState(ArenaState.STARTING);
+                arena.setTimeToStart(30);
+                arena.setCount(true);
+                arena.setForce(true);
+                sender.sendMessage(ChatColor.GRAY+"Force starting Arena: "+arena.getID());
+            }
+            if (args.length == 1){
+                try{
+                    Arena arena = ArenaManager.getArena(Integer.parseInt(args[0]));
+                    if(arena == null){
+                        sender.sendMessage(ChatColor.RED+"No arena exists with the id: "+args[0]);
+                        return true;
+                    }
+                    arena.setState(ArenaState.STARTING);
+                    arena.setTimeToStart(30);
+                    arena.setCount(true);
+                    arena.setForce(true);
+                    sender.sendMessage(ChatColor.GRAY+"Force starting Arena: "+arena.getID());
+                }catch (NumberFormatException e){
+                    sender.sendMessage(ChatColor.RED+"The arguments must be a number");
+                    return true;
+                }
+            }
+        }
         return true;
     }
 }
