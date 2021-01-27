@@ -10,3 +10,5 @@ commands:
     description: lol
   arena-list:
     description: lol
+  forcestart:
+    description: bruh
