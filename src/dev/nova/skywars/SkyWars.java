@@ -48,30 +48,32 @@ public class SkyWars extends JavaPlugin implements Listener {
         Arena.LEAVE_ITEM = li;
 
         File plugin = new File("./plugins/Skywars/");
-        if(!plugin.exists()) plugin.mkdir();
+        plugin.mkdir();
 
         File config = new File("./plugins/Skywars/","config.yml");
-        if(!config.exists()) {
+
             try {
                 config.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
 
         File arenas = new File("./plugins/Skywars/arenas");
-        if(!arenas.exists()) arenas.mkdir();
+        arenas.mkdir();
 
         File cages = new File("./plugins/Skywars/cages");
-        if(!cages.exists()) cages.mkdir();
+        cages.mkdir();
 
         Bukkit.getPluginManager().registerEvents(this,this);
         Bukkit.getPluginManager().registerEvents(new ArenaListGUI(),this);
         Bukkit.getPluginManager().registerEvents(new ArenaListener(),this);
 
-        getCommand("join").setExecutor(new ArenaCommand());
-        getCommand("arena-list").setExecutor(new ArenaCommand());
-        getCommand("forcestart").setExecutor(new ArenaCommand());
+        ArenaCommand arenaCommands = new ArenaCommand();
+        getCommand("join").setExecutor(arenaCommands);
+        getCommand("arena-list").setExecutor(arenaCommands);
+        getCommand("forcestart").setExecutor(arenaCommands);
+        getCommand("finalarena").setExecutor(arenaCommands);
+        getCommand("arena").setExecutor(arenaCommands);
 
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] "+ ChatColor.GREEN+"Loading arenas...");
         ArenaManager.loadArenas(new File("./plugins/Skywars/arenas"));
