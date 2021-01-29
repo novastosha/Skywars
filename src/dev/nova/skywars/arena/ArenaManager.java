@@ -1,14 +1,17 @@
 package dev.nova.skywars.arena;
 
 import org.bukkit.*;
+import org.bukkit.block.Chest;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Random;
 
 public class ArenaManager {
 
@@ -73,7 +76,7 @@ public class ArenaManager {
         }
     }
 
-    public static void loadArena(File file) {
+    public static boolean loadArena(File file) {
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.AQUA + "Loading arena: " + file.getName());
         YamlConfiguration configuration = new YamlConfiguration();
         try {
@@ -81,36 +84,37 @@ public class ArenaManager {
         } catch (IOException | InvalidConfigurationException err) {
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName());
             err.printStackTrace();
+            return false;
         }
 
         ConfigurationSection configurationSection = configuration.getConfigurationSection("data") != null ? configuration.getConfigurationSection("data") : null;
 
         if (configurationSection == null || !configurationSection.contains("maxPlayers") || !configurationSection.contains("codeName") || !configurationSection.contains("displayName")) {
-            Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName());
-            return;
+            Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName()+" (Is the config empty?)");
+            return false;
         }
 
         if (!configurationSection.get("maxPlayers").getClass().getTypeName().equalsIgnoreCase("java.lang.Integer")) {
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName() + " (maxPlayers must be an Integer)");
-            return;
+            return false;
         }
         if (!configurationSection.get("codeName").getClass().getTypeName().equalsIgnoreCase("java.lang.String")) {
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName() + " (codeName must be String)");
-            return;
+            return false;
         } else {
             if (configurationSection.getString("codeName").contains(" ")) {
                 Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName() + " (codeName is String but contains space(s))");
-                return;
+                return false;
             }
         }
         if (!configurationSection.get("displayName").getClass().getTypeName().equalsIgnoreCase("java.lang.String")) {
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName() + " (displayName must be String)");
-            return;
+            return false;
         }
 
         if (!configurationSection.get("world").getClass().getTypeName().equalsIgnoreCase("java.lang.String")) {
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName() + " (world must be String)");
-            return;
+            return false;
         }
 
         String worldString = configurationSection.getString("world");
@@ -118,7 +122,7 @@ public class ArenaManager {
 
         if (world == null) {
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName() + " (A world with name: " + worldString + " does not exist!)");
-            return;
+            return false;
         }
 
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.BLUE + "Building arena...");
@@ -126,9 +130,10 @@ public class ArenaManager {
         String codeName = configurationSection.getString("codeName");
         String displayName = configurationSection.getString("displayName");
         ArrayList<Location> cages = new ArrayList<>();
-        FinalArena arena = new FinalArena(codeName, displayName, maxPlayers,cages,world,world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation());
+        FinalArena arena = new FinalArena(codeName, displayName, maxPlayers,cages,world,world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation(),cages);
         arenasFinalCache.add(arena);
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.GREEN + "Arena: " + displayName + " has successfully loaded!");
+        return true;
     }
 
     public static ArrayList<FinalArena> getFinaArenas() {
@@ -155,5 +160,15 @@ public class ArenaManager {
             }
         }
         return null;
+    }
+
+    public static void generateLoot(Chest chestBlock) {
+        if(!(chestBlock.getBlockInventory().firstEmpty() == -1)){
+            int random = new Random().nextInt(36);
+            if(chestBlock.getBlockInventory().getItem(random).getType().equals(Material.AIR)){
+                chestBlock.getBlockInventory().setItem(random,/*TESTING*/new ItemStack(Material.ARROW));
+            }
+            generateLoot(chestBlock);
+        }
     }
 }
