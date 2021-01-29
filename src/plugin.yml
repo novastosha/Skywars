@@ -12,3 +12,7 @@ commands:
     description: lol
   forcestart:
     description: bruh
+  arena:
+    description: hah
+  finalarena:
+    description: hah
