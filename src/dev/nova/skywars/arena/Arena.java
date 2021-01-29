@@ -3,6 +3,10 @@ package dev.nova.skywars.arena;
 import dev.nova.skywars.SkyWars;
 import dev.nova.skywars.player.SkyWarsPlayer;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -14,11 +18,15 @@ public class Arena {
 
     public static ItemStack LEAVE_ITEM;
     private final FinalArena fromClone;
+    private Location waitingSpawnPOS1;
+    private Location waitingSpawnPOS2;
+    private Location waitingSpawn;
     private World world;
     private String codeName;
     private String displayName;
     private ArrayList<SkyWarsPlayer> players;
     private ArrayList<SkyWarsPlayer> spectators;
+    private ArrayList<org.bukkit.block.Block> chests;
     private HashMap<SkyWarsPlayer, Location> playerCage;
     private ArenaState state;
     private int minPlayers;
@@ -46,6 +54,19 @@ public class Arena {
             spectators = new ArrayList<>();
             this.privateGame = privateGame;
             world = ArenaManager.copyWorld(fromClone.getWorld(), fromClone.getCodeName() + "_" + ID);
+            this.waitingSpawn = fromClone.getWaitingArea().clone();
+            waitingSpawn.setWorld(world);
+            this.waitingSpawnPOS1 = fromClone.getWaitingAreaP1().clone();
+            this.waitingSpawnPOS2 = fromClone.getWaitingAreaP2().clone();
+            waitingSpawnPOS2.setWorld(world);
+            waitingSpawnPOS1.setWorld(world);
+            for(Location chestLocation : fromClone.getChests()){
+                Location cloned = chestLocation.clone();
+                cloned.setWorld(world);
+
+                chests.add(world.getBlockAt(cloned));
+            }
+
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.GOLD + "An arena has been created from: " + codeName + " with id: " + ID);
             ArenaManager.arenas.add(this);
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
@@ -123,6 +144,15 @@ public class Arena {
 
     public int getID() {
         return ID;
+    }
+
+    public void fillChests(){
+        for (Block chest : chests){
+            if(chest.getType().equals(Material.CHEST)){
+                Chest chestBlock = (Chest) chest.getState();
+                ArenaManager.generateLoot(chestBlock);
+            }
+        }
     }
 
     public void updateState() {
