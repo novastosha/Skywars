@@ -1,3 +1,10 @@
+/*
+ * COPYRIGHT novastosha, licenced under MIT licence.
+ *
+ * PLEASE READ THE BUY/SELL TERMS AND CONDITIONS on:
+ *
+ * https://github.com/novastosha/Skywars/README.md
+ */
 package dev.nova.skywars;
 
 import dev.nova.skywars.arena.Arena;
@@ -21,16 +28,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class SkyWars extends JavaPlugin implements Listener {
-    /**
-     * TODO:
-     *
-     * Custom death messages :)
-     */
 
     @Override
     public void onEnable() {
@@ -38,6 +39,8 @@ public class SkyWars extends JavaPlugin implements Listener {
         ArenaManager.arenasFinalCache = new ArrayList<>();
         ArenaManager.arenas = new ArrayList<>();
         SkyWarsPlayer.skyWarsPlayerCache = new ArrayList<>();
+        CageManager.cages = new ArrayList<>();
+
         for(Player player : Bukkit.getOnlinePlayers()){
             SkyWarsPlayer skyWarsPlayer = new SkyWarsPlayer(player);
         }
