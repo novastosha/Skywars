@@ -15,9 +15,9 @@ public class FinalArena implements Cloneable {
     private final Location waitingAreaP1;
     private final Location waitingAreaP2;
     private final List<Location> cages;
-    private final List<Location> chests;
+    private final List<Chest> chests;
 
-    public FinalArena(String codeName, String displayName, int maxPlayers, List<Location> cages, World world, Location waiting, Location waitingAreaP1, Location waitingAreaP2,List<Location> chests) {
+    public FinalArena(String codeName, String displayName, int maxPlayers, List<Location> cages, World world, Location waiting, Location waitingAreaP1, Location waitingAreaP2,List<Chest> chests) {
         this.codeName = codeName;
         this.fancyName = displayName;
         this.maxPlayers = maxPlayers;
@@ -41,7 +41,7 @@ public class FinalArena implements Cloneable {
         return maxPlayers;
     }
 
-    public List<Location> getChests() {
+    public List<Chest> getChests() {
         return chests;
     }
 
