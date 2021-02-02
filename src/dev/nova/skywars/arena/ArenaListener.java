@@ -19,6 +19,7 @@ public class ArenaListener implements Listener {
         if(player == null) return;
 
         Arena arena = player.getGame();
+        if(arena == null) return;
         if(arena.getArenaState().equals(ArenaState.WAITING) || arena.getArenaState().equals(ArenaState.STARTING) || arena.getArenaState().equals(ArenaState.FULL)){
             event.setCancelled(true);
         }
@@ -31,6 +32,7 @@ public class ArenaListener implements Listener {
         if(player == null) return;
 
         Arena arena = player.getGame();
+        if(arena == null) return;
         if(arena.getArenaState().equals(ArenaState.WAITING) || arena.getArenaState().equals(ArenaState.STARTING) || arena.getArenaState().equals(ArenaState.FULL)){
             event.setCancelled(true);
         }else{
@@ -45,6 +47,7 @@ public class ArenaListener implements Listener {
         if(player == null) return;
 
         Arena arena = player.getGame();
+        if(arena == null) return;
         if(arena.getArenaState().equals(ArenaState.WAITING) || arena.getArenaState().equals(ArenaState.STARTING) || arena.getArenaState().equals(ArenaState.FULL)) {
             event.setCancelled(true);
         }else{
@@ -90,6 +93,7 @@ public class ArenaListener implements Listener {
         if(player == null) return;
 
         Arena arena = player.getGame();
+        if(arena == null) return;
         if(arena.getArenaState().equals(ArenaState.WAITING) || arena.getArenaState().equals(ArenaState.STARTING) || arena.getArenaState().equals(ArenaState.FULL)){
             event.setCancelled(true);
         }
@@ -101,6 +105,7 @@ public class ArenaListener implements Listener {
         if(player == null) return;
 
         Arena arena = player.getGame();
+        if(arena == null) return;
         if(arena.getArenaState().equals(ArenaState.WAITING) || arena.getArenaState().equals(ArenaState.STARTING) || arena.getArenaState().equals(ArenaState.FULL)){
             event.setCancelled(true);
         }
