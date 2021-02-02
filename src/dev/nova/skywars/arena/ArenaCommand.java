@@ -1,17 +1,20 @@
 package dev.nova.skywars.arena;
 
+import dev.nova.skywars.cages.CageManager;
 import dev.nova.skywars.player.SkyWarsPlayer;
 import dev.nova.skywars.ui.ArenaListGUI;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ArenaCommand implements CommandExecutor {
 
@@ -95,21 +98,44 @@ public class ArenaCommand implements CommandExecutor {
             }
             if(args[0].equalsIgnoreCase("disable")) {
                 FinalArena arena = ArenaManager.getFinalArena(args[1]);
+
+                File arenaFile = new File("./plugins/Skywars/arenas", args[1] + ".yml");
+                if (arenaFile.exists()) {
+                    arenaFile.renameTo(new File("./plugins/Skywars/arenas","-" + args[1]+".yml"));
+                    if(arena != null) ArenaManager.getFinaArenas().remove(arena);
+                    sender.sendMessage(ChatColor.RED + "Disabled the arena: " + args[1]);
+                    Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "The arena: " + args[1] + " has been disabled by an administrator.");
+
+                }else{
+                    sender.sendMessage(ChatColor.RED+"The arena: "+args[1]+" is already disabled!");
+                }
+            }
+
+            if(args[0].equalsIgnoreCase("reload")){
+                FinalArena arena = ArenaManager.getFinalArena(args[1]);
                 if (arena == null) {
                     sender.sendMessage(ChatColor.RED + "Can't find any arena with this name");
                     return true;
                 }
                 File arenaFile = new File("./plugins/Skywars/arenas", arena.getCodeName() + ".yml");
                 if (arenaFile.exists()) {
-                    arenaFile.renameTo(new File("./plugins/Skywars/arenas","-" + arena.getCodeName()+".yml"));
-                    ArenaManager.getFinaArenas().remove(arena);
-                    sender.sendMessage(ChatColor.RED + "Disabled the arena: " + arena.getCodeName());
-                    Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "The arena: " + arena.getCodeName() + " has been disabled by an administrator.");
-
+                    if(sender instanceof Player){
+                        Player player = (Player) sender;
+                        player.sendMessage(ChatColor.YELLOW+"Attempting to reload the arena: "+args[1]);
+                        player.performCommand("finalarena disable "+args[1]);
+                        player.performCommand("finalarena enable "+args[1]);
+                    }else {
+                        Bukkit.getServer().getConsoleSender().sendMessage(ChatColor.YELLOW + "Attempting to reload the arena: " + args[1]);
+                        ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
+                        Bukkit.dispatchCommand(console, "finalarena disable " + args[1]);
+                        Bukkit.dispatchCommand(console, "finalarena enable " + args[1]);
+                    }
                 }else{
                     sender.sendMessage(ChatColor.RED+"The arena: "+arena.getCodeName()+" is already disabled!");
                 }
+
             }
+
             if(args[0].equalsIgnoreCase("enable")) {
                 File arenaFile = new File("./plugins/Skywars/arenas", "-"+args[1] + ".yml");
                 if (arenaFile.exists()) {
@@ -171,6 +197,80 @@ public class ArenaCommand implements CommandExecutor {
                     }
                 }else{
                     sender.sendMessage(ChatColor.RED+"Unable to find any disabled arena with name: "+args[1]);
+                }
+            }
+            if(args[0].equalsIgnoreCase("addChest")) {
+                if (sender instanceof Player) {
+                    File arenaFile = new File("./plugins/Skywars/arenas", "-" + args[1] + ".yml");
+                    if (arenaFile.exists()) {
+                        try {
+                            if (args.length == 3) {
+
+                                Player player = (Player) sender;
+
+                                YamlConfiguration configuration = new YamlConfiguration();
+                                configuration.load(arenaFile);
+                                Block block = player.getTargetBlock(null, 100);
+                                if(!block.getType().equals(Material.CHEST)){
+                                    player.sendMessage(ChatColor.RED+"The block must be a chest!");
+                                    return true;
+                                }
+                                if(ChestType.valueOf(args[2]) == null){
+                                    player.sendMessage(ChatColor.RED+"Cannot find this chest type!");
+                                    return true;
+                                }
+                                Location blockLocation = block.getLocation();
+                                String blockLocationString = blockLocation.getBlockX()+"_"+blockLocation.getBlockY()+"_"+blockLocation.getBlockZ()+"_"+blockLocation.getWorld().getName();
+                                configuration.set("data.chests."+blockLocationString, args[2]);
+                                configuration.save(arenaFile);
+                                player.sendMessage(ChatColor.GREEN+"The chest has been added!");
+                            } else {
+                                sender.sendMessage(ChatColor.RED+"Missing arguments!");
+                            }
+                        } catch (Exception exception) {
+                            sender.sendMessage(ChatColor.RED + "Error occurred while trying to create the arena: " + args[1] + " (See console)");
+                            exception.printStackTrace();
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Unable to find any disabled arena with name: " + args[1]);
+                    }
+                }else{
+                    sender.sendMessage(ChatColor.RED+"Only players are able to execute this command!");
+                }
+            }
+            if(args[0].equalsIgnoreCase("addCage")){
+                if (sender instanceof Player) {
+                    File arenaFile = new File("./plugins/Skywars/arenas", "-" + args[1] + ".yml");
+                    if (arenaFile.exists()) {
+                        try {
+                            if (args.length == 3) {
+
+                                Player player = (Player) sender;
+
+                                YamlConfiguration configuration = new YamlConfiguration();
+                                configuration.load(arenaFile);
+                                List<Location> cages =  new ArrayList<>();
+
+                                if((List<Location>) configuration.getList("data.cages") != null){
+                                    cages = (List<Location>) configuration.getList("data.cages");
+                                }
+
+                                cages.add(new Location(player.getWorld(),player.getLocation().getBlockX(),player.getLocation().getBlockY(),player.getLocation().getBlockZ()));
+
+                                configuration.set("data.cages" ,cages);
+                                configuration.save(arenaFile);
+                            } else {
+                                sender.sendMessage(ChatColor.RED+"Missing arguments!");
+                            }
+                        } catch (Exception exception) {
+                            sender.sendMessage(ChatColor.RED + "Error occurred while trying to create the arena: " + args[1] + " (See console)");
+                            exception.printStackTrace();
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Unable to find any disabled arena with name: " + args[1]);
+                    }
+                }else{
+                    sender.sendMessage(ChatColor.RED+"Only players are able to execute this command!");
                 }
             }
         }
