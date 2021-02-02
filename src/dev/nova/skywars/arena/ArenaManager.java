@@ -1,6 +1,7 @@
 package dev.nova.skywars.arena;
 
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -8,10 +9,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 public class ArenaManager {
 
@@ -87,9 +85,9 @@ public class ArenaManager {
             return false;
         }
 
-        ConfigurationSection configurationSection = configuration.getConfigurationSection("data") != null ? configuration.getConfigurationSection("data") : null;
+        ConfigurationSection configurationSection = configuration.getConfigurationSection("data");
 
-        if (configurationSection == null || !configurationSection.contains("maxPlayers") || !configurationSection.contains("codeName") || !configurationSection.contains("displayName")) {
+        if (configurationSection == null) {
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName()+" (Is the config empty?)");
             return false;
         }
@@ -129,8 +127,32 @@ public class ArenaManager {
         int maxPlayers = configurationSection.getInt("maxPlayers");
         String codeName = configurationSection.getString("codeName");
         String displayName = configurationSection.getString("displayName");
-        ArrayList<Location> cages = new ArrayList<>();
-        FinalArena arena = new FinalArena(codeName, displayName, maxPlayers,cages,world,world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation(),cages);
+
+        ArrayList<dev.nova.skywars.arena.Chest> chests = new ArrayList<>();
+        if(configurationSection.getConfigurationSection("chests") == null){
+            Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName() + " (No chests found!)");
+            return true;
+        }
+        if(configurationSection.get("cages") == null){
+            Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.RED + "Loading failed: " + file.getName() + " (No cages found!)");
+            return true;
+        }
+
+        List<Location> cages = (List<Location>) configuration.getList("data.cages");
+
+        configurationSection.getConfigurationSection("chests").getKeys(false).forEach(chest ->{
+            ChestType type = ChestType.valueOf(configurationSection.getConfigurationSection("chests").getString(chest));
+            String[] chestLocation = chest.split("_");
+            World chestWorld = Bukkit.getWorld(chestLocation[3]);
+            Location location = new Location(chestWorld,Integer.parseInt(chestLocation[0]),Integer.parseInt(chestLocation[1]),Integer.parseInt(chestLocation[2]));
+            Block block = chestWorld.getBlockAt(location);
+            if(block.getType().equals(Material.CHEST)){
+                chests.add(new dev.nova.skywars.arena.Chest((Chest) block.getState(),type));
+                Bukkit.getConsoleSender().sendMessage("[SKYWARS] "+ChatColor.GREEN+"The chest at: "+chestLocation[0]+" "+chestLocation[1]+" "+chestLocation[2]);
+            }
+        });
+
+        FinalArena arena = new FinalArena(codeName, displayName, maxPlayers,cages,world,world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation(),world.getBlockAt(0,0,0).getLocation(),chests);
         arenasFinalCache.add(arena);
         Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.GREEN + "Arena: " + displayName + " has successfully loaded!");
         return true;
@@ -160,15 +182,5 @@ public class ArenaManager {
             }
         }
         return null;
-    }
-
-    public static void generateLoot(Chest chestBlock) {
-        if(!(chestBlock.getBlockInventory().firstEmpty() == -1)){
-            int random = new Random().nextInt(36);
-            if(chestBlock.getBlockInventory().getItem(random).getType().equals(Material.AIR)){
-                chestBlock.getBlockInventory().setItem(random,/*TESTING*/new ItemStack(Material.ARROW));
-            }
-            generateLoot(chestBlock);
-        }
     }
 }
