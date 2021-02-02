@@ -1,7 +1,7 @@
 /*
  * COPYRIGHT novastosha, licenced under MIT licence.
  *
- * PLEASE READ THE BUY/SELL TERMS AND CONDITIONS on:
+ * PLEASE READ THE TERMS AND CONDITIONS on:
  *
  * https://github.com/novastosha/Skywars/README.md
  */
