@@ -3,10 +3,7 @@ package dev.nova.skywars.arena;
 import dev.nova.skywars.SkyWars;
 import dev.nova.skywars.player.SkyWarsPlayer;
 import org.bukkit.*;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -26,7 +23,7 @@ public class Arena {
     private String displayName;
     private ArrayList<SkyWarsPlayer> players;
     private ArrayList<SkyWarsPlayer> spectators;
-    private ArrayList<org.bukkit.block.Block> chests;
+    private ArrayList<dev.nova.skywars.arena.Chest> chests;
     private HashMap<SkyWarsPlayer, Location> playerCage;
     private ArenaState state;
     private int minPlayers;
@@ -60,11 +57,10 @@ public class Arena {
             this.waitingSpawnPOS2 = fromClone.getWaitingAreaP2().clone();
             waitingSpawnPOS2.setWorld(world);
             waitingSpawnPOS1.setWorld(world);
-            for(Location chestLocation : fromClone.getChests()){
-                Location cloned = chestLocation.clone();
-                cloned.setWorld(world);
+            chests = new ArrayList<>();
+            for(dev.nova.skywars.arena.Chest chest : fromClone.getChests()){
 
-                chests.add(world.getBlockAt(cloned));
+                chests.add(chest.cloneChest(world));
             }
 
             Bukkit.getConsoleSender().sendMessage("[SKYWARS] " + ChatColor.GOLD + "An arena has been created from: " + codeName + " with id: " + ID);
@@ -79,8 +75,7 @@ public class Arena {
                         started = true;
                     }
                     if (count) {
-                        sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game is starting in: " + timeToStart);
-                        if (timeToStart <= 10) {
+                        if (timeToStart <= 10 && timeToStart != 0) {
                             sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game is starting in: " + timeToStart);
                         }
                         timeToStart--;
@@ -91,6 +86,7 @@ public class Arena {
                             setState(ArenaState.INGAME);
                             sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + " The game has begun!");
                             count = false;
+                            startGame();
                         }
                     }
                 }
@@ -100,6 +96,14 @@ public class Arena {
             Bukkit.getConsoleSender().sendMessage("PLEASE REPORT THE ERROR AS SOON AS POSSIBLE");
             e.printStackTrace();
         }
+    }
+
+    private void startGame() {
+        fillChests();
+    }
+
+    private void stopGame(){
+
     }
 
     public World getWorld() {
@@ -147,11 +151,8 @@ public class Arena {
     }
 
     public void fillChests(){
-        for (Block chest : chests){
-            if(chest.getType().equals(Material.CHEST)){
-                Chest chestBlock = (Chest) chest.getState();
-                ArenaManager.generateLoot(chestBlock);
-            }
+        for (dev.nova.skywars.arena.Chest chest : chests){
+            chest.generateLoot();
         }
     }
 
@@ -249,7 +250,7 @@ public class Arena {
         player.getPlayer().getInventory().setItem(8, LEAVE_ITEM);
         player.setInGame(true);
         player.setGame(this);
-        //player.getPlayer().teleport(world.getSpawnLocation());
+        //player.getPlayer().teleport(new Location(world,83, 76 ,262));
         sendToAllPlayers(ChatColor.GRAY + "[" + ChatColor.LIGHT_PURPLE + "SKYWARS" + ChatColor.GRAY + "]" + ChatColor.LIGHT_PURPLE + player.getPlayer().getName() + ChatColor.GRAY + " has joined the game!");
         //TODO HANDLE CAGE SELECTION
     }
@@ -279,7 +280,7 @@ public class Arena {
         player.getPlayer().getInventory().clear();
         player.setInGame(false);
         player.setGame(null);
-        player.getPlayer().setGameMode(GameMode.ADVENTURE);
+        //player.getPlayer().setGameMode(GameMode.ADVENTURE);
     }
 
     public ArrayList<SkyWarsPlayer> getSpectators() {
